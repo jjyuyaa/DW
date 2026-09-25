@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>덴우 서고</title>
+<meta name="theme-color" content="#1B2130">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" href="/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="덴우 서고">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=Nanum+Myeongjo:wght@400;800&family=Gowun+Dodum&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#EEF0F3; --surface:#FFFFFF; --ink:#1B2130; --sub:#5E6576; --line:#D9DDE5;
+  --accent:#8C3B55; --accent-soft:#F3E4E9; --on-accent:#FFFFFF; --star:#C98A1B; --danger:#B3261E;
+  --ui:"IBM Plex Sans KR",system-ui,sans-serif; --read:"Gowun Batang","Nanum Myeongjo",serif;
+}
+@media (prefers-color-scheme: dark){:root{
+  color-scheme:dark;--bg:#12151C;--surface:#1B1F29;--ink:#E7E9EF;--sub:#9AA1B2;--line:#2C3240;--accent:#E08AA3;--accent-soft:#3A2330;--on-accent:#1B1F29;--star:#E3B04B;--danger:#F2B8B5;}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:15px;padding-top:env(safe-area-inset-top,0px);-webkit-tap-highlight-color:transparent}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.5;cursor:default}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+[hidden]{display:none!important}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:0 calc(80px + env(safe-area-inset-bottom,0px))}
+header.top{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.topin{max-width:760px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px}
+.logo{font-family:"Nanum Myeongjo",serif;font-weight:800;font-size:22px;letter-spacing:-.02em;background:none;border:0;padding:0}
+.logo small{font-family:var(--ui);font-weight:500;font-size:11px;color:var(--sub);letter-spacing:.12em;margin-left:6px}
+.sp{flex:1}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 12px;font-size:13px}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.ghost{background:none;border-color:transparent}
+.btn.danger{color:var(--danger)}
+.btn.big{padding:12px;font-size:15px;width:100%}
+.tabs{display:flex;gap:4px;margin-block:16px 12px;overflow-x:auto}
+.tab{border:0;background:none;padding:8px 12px;border-radius:999px;color:var(--sub);font-weight:500;white-space:nowrap}
+.tab.on{background:var(--ink);color:var(--bg)}
+.search{display:flex;gap:8px;margin-block:16px 0}
+.search select{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:0 10px}
+.search input{flex:1;min-width:0;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:11px 14px}
+.cont{margin-top:16px;display:flex;gap:14px;align-items:center;background:var(--ink);color:var(--bg);border-radius:14px;padding:14px 16px;border:0;width:100%;text-align:left}
+.cont .t{font-family:var(--read);font-size:17px;font-weight:700}
+.cont .s{font-size:12px;opacity:.75}
+.bar{height:4px;border-radius:2px;background:rgba(128,128,128,.35);margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+.eyebrow{font-size:11px;letter-spacing:.14em;color:var(--sub);font-weight:600;margin-block:24px 8px}
+.list{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.item{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:center;padding:14px 0;border:0;border-bottom:1px solid var(--line);background:none;text-align:left;width:100%}
+.spine{height:70px;border-radius:3px 6px 6px 3px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;font-family:"Nanum Myeongjo",serif;font-weight:800;color:#fff;font-size:13px;box-shadow:inset 4px 0 0 rgba(0,0,0,.18)}
+.item h3{margin:0;font-family:var(--read);font-size:17px;text-wrap:balance}
+.meta{font-size:12.5px;color:var(--sub);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chip{font-size:11.5px;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:2px 8px}
+.stars{color:var(--star);font-variant-numeric:tabular-nums}
+.empty{color:var(--sub);padding:28px 0;text-align:center;line-height:1.7}
+.hero{display:grid;grid-template-columns:96px 1fr;gap:18px;margin-top:20px}
+.hero .spine{height:136px;font-size:16px}
+.hero h1{font-family:"Nanum Myeongjo",serif;font-weight:800;font-size:26px;margin:0 0 6px;text-wrap:balance}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+.rate{display:flex;gap:2px}
+.rate button{border:0;background:none;font-size:28px;color:var(--line);padding:0 2px}
+.rate button.on{color:var(--star)}
+textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:10px;resize:vertical}
+.rev{border-top:1px solid var(--line);padding-block:12px}
+.rev b{font-weight:600;color:var(--ink)}
+/* auth */
+.auth{max-width:380px;margin:48px auto 0;display:flex;flex-direction:column;gap:12px}
+.auth h1{font-family:"Nanum Myeongjo",serif;font-weight:800;font-size:34px;margin:0}
+.auth .lead{color:var(--sub);line-height:1.7;margin:0 0 8px}
+input.f{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:12px}
+.sheet input.f{background:var(--bg)}
+.err{color:var(--danger);font-size:13px;margin:0}
+.link{background:none;border:0;color:var(--accent);padding:4px;font-size:13px}
+/* reader */
+.reader{position:fixed;inset:0;z-index:20;background:var(--rbg);color:var(--rink);display:flex;flex-direction:column}
+.rtop,.rbot{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--rline);background:var(--rbg)}
+.rtop{padding-top:calc(10px + env(safe-area-inset-top,0px))}
+.rbot{border-bottom:0;border-top:1px solid var(--rline);padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));font-size:12px;color:var(--rsub)}
+.rtop .ttl{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;color:var(--rsub)}
+.rtop button{background:none;border:1px solid var(--rline);color:var(--rink);border-radius:8px;padding:6px 10px;font-size:13px}
+.rbody{flex:1;overflow-y:auto;padding-inline:20px;-webkit-overflow-scrolling:touch}
+.rtext{max-width:640px;margin:0 auto;padding-block:32px 120px;word-break:keep-all;overflow-wrap:anywhere}
+.rtext h2{font-family:"Nanum Myeongjo",serif;font-weight:800;font-size:1.3em;margin:0 0 1.6em;text-align:center}
+.rtext p{margin:0 0 var(--pgap);position:relative;border-radius:4px;transition:background .15s}
+.rtext p.bm::before{content:"";position:absolute;left:-12px;top:.3em;width:4px;height:1.1em;background:var(--accent);border-radius:2px}
+.rtext p.hl{background:color-mix(in srgb,var(--accent) 16%,transparent)}
+.rtext p.sel{background:color-mix(in srgb,var(--rink) 8%,transparent)}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--surface);color:var(--ink);border-radius:18px 18px 0 0;border-top:1px solid var(--line);padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));max-height:88%;overflow-y:auto;box-shadow:0 -10px 30px rgba(0,0,0,.18)}
+.sheet .in{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.sheet h4{margin:0;font-size:16px}
+.dim{position:fixed;inset:0;z-index:35;background:rgba(10,12,18,.4)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:7px 11px;font-size:13px}
+.seg button.on{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.lab{font-size:12px;color:var(--sub);font-weight:600;letter-spacing:.06em;margin-bottom:6px}
+.acts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.acts button{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:12px 6px;font-size:13px}
+.quote{font-family:var(--read);font-size:15px;line-height:1.7;border-left:3px solid var(--accent);padding-left:12px;white-space:pre-wrap}
+#cardOut{width:100%;max-width:360px;border-radius:10px;align-self:center;border:1px solid var(--line)}
+.toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:13px;z-index:60;max-width:90vw;text-align:center}
+.note{font-size:12px;color:var(--sub);line-height:1.6;margin:0}
+.up-row{display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center}
+.up-row input{min-width:0;padding:8px;font-size:13px}
+.up-row small{font-size:11px;color:var(--sub);white-space:nowrap}
+.loading{color:var(--sub);text-align:center;padding:48px 0}
+@media (max-width:420px){.hero{grid-template-columns:72px 1fr}.hero .spine{height:104px}.up-row{grid-template-columns:1fr 1fr}.up-row small{grid-column:1/-1}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="topin">
+  <button class="logo" id="goHome" type="button">덴우 서고<small>DANWOO</small></button>
+  <span class="sp"></span>
+  <button class="btn" id="acctBtn" type="button" hidden>내 정보</button>
+</div></header>
+
+<main class="wrap" id="app"><p class="loading">불러오는 중…</p></main>
+
+<div id="dim" class="dim" hidden></div>
+<div id="sheet" class="sheet" hidden><div class="in" id="sheetIn"></div></div>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+/* ===== Supabase 연결 정보 (공개 키라 여기 있어도 괜찮아요) ===== */
+const SUPABASE_URL = 'https://iiwwmerpqkgyreenuujp.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_P1nX5X5QhhLmCeh_MCnoTQ_gi5p2WEr';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function lget(k,d){try{const v=localStorage.getItem('danwoo_'+k);return v?JSON.parse(v):d}catch(e){return d}}
+function lset(k,v){try{localStorage.setItem('danwoo_'+k,JSON.stringify(v))}catch(e){}}
+function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(t._t);t._t=setTimeout(()=>t.hidden=true,2200)}
+function ymd(d){d=new Date(d);return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`}
+const COLORS=['#3E5C76','#7A3B52','#4F6B4A','#6B4F7A','#7A6440','#3F6670','#5B4A6E','#6E4A3F'];
+
+const S = {
+  user:null, profile:null, works:[], stats:{}, progress:{}, bookmarks:[], quotes:[], bodies:{},
+  set: lget('set',{size:18,lh:1.9,font:'batang',theme:'paper',gap:1.1}),
+  tab:'all', q:'', qBy:'title', view:'home', detailId:null
+};
+const isAdmin = () => !!S.profile?.is_admin;
+const paras = body => body.split(/\r?\n+/).map(s=>s.trim()).filter(Boolean);
+const workById = id => S.works.find(w=>w.id===id);
+
+/* ===== 로그인 ===== */
+function authView(mode='in', msg=''){
+  $('#acctBtn').hidden = true;
+  $('#app').innerHTML = `
+  <form class="auth" id="authForm">
+    <h1>덴우 서고</h1>
+    <p class="lead">흩어진 덴우 텍파를 한곳에.<br>${mode==='in'?'로그인하고 읽던 곳부터 이어보세요.':'처음이면 가입부터 해주세요.'}</p>
+    ${mode==='up'?'<input class="f" id="aNick" placeholder="닉네임 (리뷰에 보여요)" maxlength="16" autocomplete="nickname" required>':''}
+    <input class="f" id="aEmail" type="email" placeholder="이메일" autocomplete="email" required>
+    <input class="f" id="aPw" type="password" placeholder="비밀번호 (6자 이상)" minlength="6" autocomplete="${mode==='in'?'current-password':'new-password'}" required>
+    ${msg?`<p class="err">${esc(msg)}</p>`:''}
+    <button class="btn pri big" type="submit" id="aGo">${mode==='in'?'로그인':'가입하기'}</button>
+    <button class="link" type="button" id="aSwap">${mode==='in'?'계정이 없어요 → 가입하기':'이미 계정이 있어요 → 로그인'}</button>
+  </form>`;
+  $('#aSwap').onclick = () => authView(mode==='in'?'up':'in');
+  $('#authForm').onsubmit = async e => {
+    e.preventDefault();
+    const email=$('#aEmail').value.trim(), password=$('#aPw').value;
+    $('#aGo').disabled = true;
+    let res;
+    if(mode==='up'){
+      const nickname=$('#aNick').value.trim();
+      res = await sb.auth.signUp({email,password,options:{data:{nickname}}});
+    } else {
+      res = await sb.auth.signInWithPassword({email,password});
+    }
+    if(res.error){
+      const m=res.error.message||'';
+      let k='문제가 생겼어요: '+m;
+      if(/Invalid login/i.test(m)) k='이메일이나 비밀번호가 맞지 않아요.';
+      else if(/already registered/i.test(m)) k='이미 가입된 이메일이에요. 로그인해 주세요.';
+      else if(/at least 6/i.test(m)) k='비밀번호는 6자 이상이어야 해요.';
+      else if(/rate limit/i.test(m)) k='잠시 후 다시 시도해 주세요.';
+      authView(mode,k); return;
+    }
+    if(mode==='up' && !res.data.session){ authView('in','가입됐어요! 로그인해 주세요.'); }
+  };
+}
+
+/* ===== 데이터 불러오기 ===== */
+async function loadAll(){
+  const uid=S.user.id;
+  const [p,w,st,pr,bm,qt] = await Promise.all([
+    sb.from('profiles').select('*').eq('id',uid).maybeSingle(),
+    sb.from('works').select('id,title,author,tags,color,written_at,created_at').order('created_at',{ascending:false}),
+    sb.from('work_stats').select('*'),
+    sb.from('progress').select('work_id,ratio,updated_at'),
+    sb.from('bookmarks').select('id,work_id,para,snippet,created_at').order('created_at',{ascending:false}),
+    sb.from('quotes').select('id,work_id,para,content,created_at').order('created_at',{ascending:false}),
+  ]);
+  const e=[p,w,st,pr,bm,qt].find(r=>r.error);
+  if(e){ $('#app').innerHTML=`<p class="empty">데이터를 불러오지 못했어요.<br>${esc(e.error.message)}</p>`; return false; }
+  S.profile=p.data; S.works=w.data||[];
+  S.stats={}; (st.data||[]).forEach(r=>S.stats[r.work_id]=r);
+  S.progress={}; (pr.data||[]).forEach(r=>S.progress[r.work_id]={r:r.ratio,t:new Date(r.updated_at).getTime()});
+  S.bookmarks=bm.data||[]; S.quotes=qt.data||[];
+  return true;
+}
+async function refreshStats(){const {data}=await sb.from('work_stats').select('*');S.stats={};(data||[]).forEach(r=>S.stats[r.work_id]=r)}
+
+/* ===== 홈 ===== */
+function home(){
+  S.view='home'; closeReader();
+  $('#acctBtn').hidden=false; $('#acctBtn').textContent=(S.profile?.nickname||'내 정보')+' 님';
+  const w=S.works; let list=w;
+  const q=S.q.trim().toLowerCase();
+  if(q) list=list.filter(x=>(S.qBy==='title'?x.title:x.author).toLowerCase().includes(q));
+  const last=Object.entries(S.progress).filter(([id])=>workById(id)).sort((a,b)=>b[1].t-a[1].t)[0];
+  const lw=last&&workById(last[0]);
+  let body='';
+  if(S.tab==='all'){
+    body = !w.length ? `<p class="empty">아직 올라온 글이 없어요.${isAdmin()?'<br>오른쪽 위 ＋ 업로드로 첫 글을 올려보세요.':''}</p>`
+      : list.length ? `<div class="list">${list.map(item).join('')}</div>` : `<p class="empty">“${esc(S.q)}” 검색 결과가 없어요.</p>`;
+  } else if(S.tab==='bm'){
+    body = S.bookmarks.length ? `<div class="list">${S.bookmarks.map(b=>{const x=workById(b.work_id);if(!x)return'';
+      return `<button class="item" type="button" data-open="${x.id}" data-p="${b.para}" style="grid-template-columns:1fr auto"><div><h3 style="font-size:15px">${esc(x.title)}</h3><div class="meta">${b.para+1}번째 문단 · ${esc(b.snippet)}…</div></div><span class="meta">이동 ›</span></button>`}).join('')}</div>`
+      : `<p class="empty">읽다가 문단을 누르면 북마크할 수 있어요.</p>`;
+  } else {
+    body = S.quotes.length ? S.quotes.map(qt=>{const x=workById(qt.work_id)||{title:'(삭제된 글)',author:''};
+      return `<div class="card" style="margin-bottom:10px"><div class="quote">${esc(qt.content)}</div><div class="meta" style="margin-top:10px">${esc(x.title)} · ${esc(x.author)}<span class="sp"></span><button class="btn" type="button" data-mkcard="${qt.id}">대사 카드</button><button class="btn ghost" type="button" data-delq="${qt.id}">삭제</button></div></div>`}).join('')
+      : `<p class="empty">마음에 드는 문장을 저장해 두면 여기 모여요.</p>`;
+  }
+  $('#app').innerHTML=`
+   ${lw?`<button class="cont" type="button" data-open="${lw.id}"><div style="flex:1;min-width:0"><div class="s">이어보기</div><div class="t">${esc(lw.title)}</div><div class="bar"><i style="width:${Math.round(last[1].r*100)}%"></i></div></div><span class="s">${Math.round(last[1].r*100)}% ›</span></button>`:''}
+   <div class="search">
+     <select id="qBy" aria-label="검색 기준"><option value="title"${S.qBy==='title'?' selected':''}>제목</option><option value="author"${S.qBy==='author'?' selected':''}>작가</option></select>
+     <input id="q" type="search" placeholder="${S.qBy==='title'?'제목으로 찾기':'작가 이름으로 찾기'}" value="${esc(S.q)}">
+   </div>
+   <div class="tabs">
+     <button class="tab${S.tab==='all'?' on':''}" data-tab="all" type="button">전체 ${w.length}</button>
+     <button class="tab${S.tab==='bm'?' on':''}" data-tab="bm" type="button">북마크 ${S.bookmarks.length}</button>
+     <button class="tab${S.tab==='qt'?' on':''}" data-tab="qt" type="button">문장 ${S.quotes.length}</button>
+     <span class="sp"></span>
+     ${isAdmin()?'<button class="tab" data-upload type="button">＋ 업로드</button>':''}
+   </div>
+   ${body}`;
+  const qi=$('#q'); qi.oninput=()=>{S.q=qi.value;const p=qi.selectionStart;home();const n=$('#q');n.focus();n.setSelectionRange(p,p)};
+  $('#qBy').onchange=e=>{S.qBy=e.target.value;home()};
+}
+function item(x){
+  const st=S.stats[x.id], pr=S.progress[x.id];
+  return `<button class="item" type="button" data-detail="${x.id}"><div class="spine" style="background:${esc(x.color)}">${esc(x.title[0])}</div>
+  <div><h3>${esc(x.title)}</h3><div class="meta"><span>${esc(x.author)}</span>${(x.tags||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>
+  <div class="meta"><span class="stars">★ ${st?Number(st.avg_stars).toFixed(1):'–'}</span><span>리뷰 ${st?st.review_count:0}</span>${pr?`<span>${Math.round(pr.r*100)}% 읽음</span>`:''}</div></div><span class="meta">›</span></button>`;
+}
+
+/* ===== 작품 상세 + 리뷰 ===== */
+let myStar=0;
+async function detail(id){
+  const x=workById(id); if(!x) return home();
+  S.view='detail'; S.detailId=id;
+  $('#app').innerHTML='<p class="loading">불러오는 중…</p>'; window.scrollTo(0,0);
+  const {data:revs,error}=await sb.from('reviews').select('id,stars,content,created_at,user_id,profiles(nickname)').eq('work_id',id).order('created_at',{ascending:false});
+  if(S.detailId!==id||S.view!=='detail') return;
+  const r=revs||[], st=S.stats[id], pr=S.progress[id];
+  const mine=r.find(v=>v.user_id===S.user.id);
+  myStar=mine?mine.stars:0;
+  $('#app').innerHTML=`
+  <button class="btn ghost" type="button" data-home style="margin-top:12px;padding-left:0">‹ 서고로</button>
+  <div class="hero"><div class="spine" style="background:${esc(x.color)}">${esc(x.title[0])}</div>
+   <div><h1>${esc(x.title)}</h1><div class="meta"><span>${esc(x.author)}</span>${x.written_at?`<span>${esc(x.written_at)}</span>`:''}</div>
+   <div class="meta" style="margin-top:6px">${(x.tags||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join('')}</div>
+   <div class="row"><button class="btn pri" type="button" data-open="${id}">${pr?`이어보기 (${Math.round(pr.r*100)}%)`:'읽기'}</button>
+   <button class="btn" type="button" data-author="${esc(x.author)}">작가 다른 글</button>
+   ${isAdmin()?`<button class="btn" type="button" data-edit="${id}">수정</button>`:''}</div></div></div>
+  <p class="eyebrow">별점 · 리뷰</p>
+  <div class="card">
+   <div style="display:flex;align-items:baseline;gap:10px"><span class="stars" style="font-size:28px;font-weight:600">★ ${st?Number(st.avg_stars).toFixed(1):'–'}</span><span class="meta">${r.length}명 참여</span></div>
+   <div class="rate" id="rate" style="margin-top:10px">${[1,2,3,4,5].map(i=>`<button type="button" data-star="${i}" class="${i<=myStar?'on':''}" aria-label="${i}점">★</button>`).join('')}</div>
+   <textarea id="revText" rows="3" maxlength="1000" placeholder="감상을 남겨주세요" style="margin-top:8px">${esc(mine?.content||'')}</textarea>
+   <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">${mine?'<button class="btn ghost danger" type="button" id="revDel">내 리뷰 삭제</button>':''}<button class="btn pri" type="button" id="revSend">${mine?'수정':'등록'}</button></div>
+   ${error?`<p class="err">리뷰를 불러오지 못했어요.</p>`:''}
+   ${r.map(v=>`<div class="rev"><div class="meta"><b>${esc(v.profiles?.nickname||'익명')}</b><span class="stars">${'★'.repeat(v.stars)}${'☆'.repeat(5-v.stars)}</span><span>${ymd(v.created_at)}</span>${isAdmin()&&v.user_id!==S.user.id?`<span class="sp"></span><button class="btn ghost danger" type="button" data-delrev="${v.id}">삭제</button>`:''}</div>${v.content?`<div style="margin-top:4px;line-height:1.6;white-space:pre-wrap">${esc(v.content)}</div>`:''}</div>`).join('')}
+  </div>`;
+  $('#rate').onclick=e=>{const b=e.target.closest('[data-star]');if(!b)return;myStar=+b.dataset.star;[...$('#rate').children].forEach((c,i)=>c.classList.toggle('on',i<myStar))};
+  $('#revSend').onclick=async()=>{
+    if(!myStar){toast('별점을 먼저 골라주세요');return}
+    $('#revSend').disabled=true;
+    const {error}=await sb.from('reviews').upsert({work_id:id,user_id:S.user.id,stars:myStar,content:$('#revText').value.trim()},{onConflict:'work_id,user_id'});
+    if(error){toast('등록하지 못했어요: '+error.message);$('#revSend').disabled=false;return}
+    await refreshStats(); toast(mine?'리뷰를 수정했어요':'리뷰를 등록했어요'); detail(id);
+  };
+  const rd=$('#revDel'); if(rd) rd.onclick=async()=>{await sb.from('reviews').delete().eq('id',mine.id);await refreshStats();toast('리뷰를 삭제했어요');detail(id)};
+}
+
+/* ===== 뷰어 ===== */
+const THEMES={paper:{bg:'#F7F6F2',ink:'#23252B',sub:'#80838C',line:'#E3E1DA',n:'종이'},white:{bg:'#FFFFFF',ink:'#1B1D22',sub:'#8A8D95',line:'#EAEAEA',n:'흰색'},sepia:{bg:'#EADFCB',ink:'#3D3226',sub:'#7F6E58',line:'#D6C8AE',n:'세피아'},green:{bg:'#DDE8DA',ink:'#26322A',sub:'#667566',line:'#C6D4C2',n:'연두'},night:{bg:'#15171C',ink:'#C9CCD3',sub:'#6E7380',line:'#262A33',n:'야간'}};
+const FONTS={batang:['고운바탕','"Gowun Batang",serif'],myeongjo:['나눔명조','"Nanum Myeongjo",serif'],dodum:['고운돋움','"Gowun Dodum",sans-serif'],sans:['고딕','"IBM Plex Sans KR",sans-serif']};
+let cur=null, curParas=[], selP=-1, saveT=null, lastRatio=0;
+async function openReader(id,jumpP){
+  const x=workById(id); if(!x) return;
+  if(!S.bodies[id]){
+    toast('불러오는 중…');
+    const {data,error}=await sb.from('works').select('body').eq('id',id).single();
+    if(error){toast('글을 불러오지 못했어요');return}
+    S.bodies[id]=data.body; $('#toast').hidden=true;
+  }
+  cur=x; curParas=paras(S.bodies[id]); selP=-1;
+  let r=$('#reader'); if(!r){r=document.createElement('div');r.id='reader';r.className='reader';document.body.appendChild(r)}
+  document.body.style.overflow='hidden';
+  r.innerHTML=`<div class="rtop"><button type="button" data-close>‹ 닫기</button><span class="ttl">${esc(x.title)} · ${esc(x.author)}</span><button type="button" data-viewer>Aa 설정</button></div>
+   <div class="rbody" id="rbody"><div class="rtext" id="rtext"><h2>${esc(x.title)}</h2>${curParas.map((p,i)=>`<p data-i="${i}">${esc(p)}</p>`).join('')}</div></div>
+   <div class="rbot"><span id="pct" style="font-variant-numeric:tabular-nums">0%</span><div class="bar" style="flex:1;margin:0"><i id="pbar" style="width:0"></i></div><span>문단을 누르면 북마크·문장저장</span></div>`;
+  applySet(); markParas();
+  const b=$('#rbody');
+  b.onscroll=()=>{const m=b.scrollHeight-b.clientHeight;lastRatio=m>0?Math.min(1,b.scrollTop/m):1;
+    $('#pct').textContent=Math.round(lastRatio*100)+'%';$('#pbar').style.width=lastRatio*100+'%';
+    clearTimeout(saveT);saveT=setTimeout(()=>saveProgress(id,lastRatio),1500)};
+  requestAnimationFrame(()=>{
+    if(jumpP!=null){const el=r.querySelector(`p[data-i="${jumpP}"]`);if(el)b.scrollTop=el.offsetTop-80}
+    else if(S.progress[id]) b.scrollTop=S.progress[id].r*(b.scrollHeight-b.clientHeight);
+    b.onscroll();
+  });
+  $('#rtext').onclick=e=>{const p=e.target.closest('p[data-i]');if(!p)return;paraSheet(+p.dataset.i,String(getSelection()).trim())};
+}
+async function saveProgress(id,ratio){
+  S.progress[id]={r:ratio,t:Date.now()};
+  await sb.from('progress').upsert({user_id:S.user.id,work_id:id,ratio,updated_at:new Date().toISOString()},{onConflict:'user_id,work_id'});
+}
+function closeReader(){
+  const r=$('#reader'); if(!r) return;
+  if(cur){clearTimeout(saveT);saveProgress(cur.id,lastRatio)}
+  r.remove(); cur=null; document.body.style.overflow=''; closeSheet();
+}
+function applySet(){const r=$('#reader');if(!r)return;const t=THEMES[S.set.theme]||THEMES.paper,s=S.set;
+  r.style.cssText=`--rbg:${t.bg};--rink:${t.ink};--rsub:${t.sub};--rline:${t.line};--pgap:${s.gap}em`;
+  const tx=$('#rtext');tx.style.fontFamily=(FONTS[s.font]||FONTS.batang)[1];tx.style.fontSize=s.size+'px';tx.style.lineHeight=s.lh}
+function markParas(){if(!cur)return;document.querySelectorAll('#rtext p').forEach(p=>{const i=+p.dataset.i;
+  p.classList.toggle('bm',S.bookmarks.some(b=>b.work_id===cur.id&&b.para===i));
+  p.classList.toggle('hl',S.quotes.some(q=>q.work_id===cur.id&&q.para===i));
+  p.classList.toggle('sel',i===selP)})}
+
+/* ===== 아래에서 올라오는 창 ===== */
+function openSheet(html){$('#sheetIn').onclick=null;$('#sheetIn').innerHTML=html;$('#sheet').hidden=false;$('#dim').hidden=false}
+function closeSheet(){$('#sheet').hidden=true;$('#dim').hidden=true;selP=-1;markParas()}
+
+function paraSheet(i,sel){
+  selP=i;markParas();
+  const text=sel&&curParas[i].includes(sel)?sel:curParas[i];
+  const bm=S.bookmarks.find(b=>b.work_id===cur.id&&b.para===i);
+  openSheet(`<h4>${i+1}번째 문단</h4><textarea id="qt" rows="3" aria-label="저장할 문장">${esc(text)}</textarea>
+  <p class="note" style="margin-top:-6px">필요한 부분만 남기고 지우면 그 문장만 저장돼요.</p>
+  <div class="acts"><button type="button" id="aBm">${bm?'북마크 해제':'북마크'}</button><button type="button" id="aQt">문장 저장</button><button type="button" id="aCard">대사 카드</button></div>`);
+  const w=cur;
+  $('#aBm').onclick=async()=>{
+    if(bm){await sb.from('bookmarks').delete().eq('id',bm.id);S.bookmarks=S.bookmarks.filter(b=>b.id!==bm.id);toast('북마크를 해제했어요')}
+    else{const {data,error}=await sb.from('bookmarks').insert({work_id:w.id,para:i,snippet:curParas[i].slice(0,24)}).select().single();
+      if(error){toast('저장하지 못했어요');return}S.bookmarks.unshift(data);toast('북마크했어요')}
+    closeSheet()};
+  $('#aQt').onclick=async()=>{const t=$('#qt').value.trim();if(!t)return;
+    const {data,error}=await sb.from('quotes').insert({work_id:w.id,para:i,content:t}).select().single();
+    if(error){toast('저장하지 못했어요');return}S.quotes.unshift(data);closeSheet();toast('문장을 저장했어요')};
+  $('#aCard').onclick=()=>cardSheet($('#qt').value.trim(),w);
+}
+
+function viewerSheet(){const s=S.set;
+  openSheet(`<h4>뷰어 설정</h4>
+  <div><div class="lab">배경</div><div class="seg" data-k="theme">${Object.entries(THEMES).map(([k,v])=>`<button type="button" data-v="${k}" class="${s.theme===k?'on':''}"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${v.bg};border:1px solid ${v.line};margin-right:5px"></span>${v.n}</button>`).join('')}</div></div>
+  <div><div class="lab">글꼴</div><div class="seg" data-k="font">${Object.entries(FONTS).map(([k,v])=>`<button type="button" data-v="${k}" class="${s.font===k?'on':''}" style="font-family:${v[1]}">${v[0]}</button>`).join('')}</div></div>
+  <div><div class="lab">글자 크기 ${s.size}px</div><div class="seg" data-k="size">${[15,16,17,18,20,22,24,26].map(v=>`<button type="button" data-v="${v}" class="${s.size==v?'on':''}">${v}</button>`).join('')}</div></div>
+  <div><div class="lab">줄 간격</div><div class="seg" data-k="lh">${[1.6,1.8,1.9,2.1,2.4].map(v=>`<button type="button" data-v="${v}" class="${s.lh==v?'on':''}">${v}</button>`).join('')}</div></div>
+  <div><div class="lab">문단 간격</div><div class="seg" data-k="gap">${[[.4,'좁게'],[1.1,'보통'],[1.8,'넓게']].map(([v,n])=>`<button type="button" data-v="${v}" class="${s.gap==v?'on':''}">${n}</button>`).join('')}</div></div>`);
+  $('#sheetIn').onclick=e=>{const b=e.target.closest('.seg button');if(!b)return;const k=b.parentNode.dataset.k;let v=b.dataset.v;if(k!=='theme'&&k!=='font')v=+v;S.set[k]=v;lset('set',S.set);applySet();viewerSheet()};
+}
+
+/* ===== 대사 카드 ===== */
+const CARDBG=[['밤하늘',['#1D2440','#3B2E55'],'#F1ECF7'],['벚꽃',['#F6D9E0','#EDC4D0'],'#4A2231'],['종이',['#F4F1E8','#E8E2D2'],'#2E2A22'],['바다',['#264653','#2A6F77'],'#EAF4F2'],['모노',['#111111','#2A2A2A'],'#F5F5F5']];
+let cardBg=lget('cardBg',0);
+function cardSheet(text,w){
+  openSheet(`<h4>대사 카드</h4>
+  <div class="seg" id="bgSeg">${CARDBG.map((c,i)=>`<button type="button" data-b="${i}" class="${i===cardBg?'on':''}">${c[0]}</button>`).join('')}</div>
+  <img id="cardOut" alt="대사 카드">
+  <button class="btn pri" type="button" id="cardSave">이미지 저장</button>
+  <p class="note" style="text-align:center">저장이 안 되면 이미지를 길게 눌러(PC는 우클릭) 저장하세요.</p>
+  <button class="btn" type="button" data-close-sheet>닫기</button>`);
+  const draw=async()=>{await document.fonts.ready;$('#cardOut').src=makeCard(text,w,CARDBG[cardBg])};draw();
+  $('#bgSeg').onclick=e=>{const b=e.target.closest('[data-b]');if(!b)return;cardBg=+b.dataset.b;lset('cardBg',cardBg);[...$('#bgSeg').children].forEach((c,i)=>c.classList.toggle('on',i===cardBg));draw()};
+  $('#cardSave').onclick=async()=>{
+    const url=$('#cardOut').src; const blob=await (await fetch(url)).blob();
+    const file=new File([blob],`덴우서고_${(w?.title||'card').slice(0,20)}.png`,{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file]});return}catch(e){if(e.name==='AbortError')return}}
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=file.name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  };
+}
+function makeCard(text,w,[,g,fg]){
+  const W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+  const gr=x.createLinearGradient(0,0,W,H);gr.addColorStop(0,g[0]);gr.addColorStop(1,g[1]);x.fillStyle=gr;x.fillRect(0,0,W,H);
+  x.fillStyle=fg;x.globalAlpha=.25;x.font='800 220px "Nanum Myeongjo",serif';x.fillText('“',90,300);x.globalAlpha=1;
+  let fs=52; const maxW=W-220; let lines;
+  const wrap=()=>{x.font=`400 ${fs}px "Gowun Batang",serif`;lines=[];text.split('\n').forEach(par=>{let line='';for(const ch of par){if(x.measureText(line+ch).width>maxW){lines.push(line);line=ch}else line+=ch}lines.push(line)})};
+  wrap(); while(lines.length*fs*1.75>H-560&&fs>30){fs-=4;wrap()}
+  const lh=fs*1.75; let y=(H-lines.length*lh)/2+fs;
+  lines.slice(0,16).forEach(l=>{x.fillText(l,110,y);y+=lh});
+  x.globalAlpha=.85;x.font='700 34px "Gowun Batang",serif';x.fillText(w?w.title:'',110,H-170);
+  x.font='400 28px "IBM Plex Sans KR",sans-serif';x.fillText(w?w.author:'',110,H-120);
+  x.textAlign='right';x.globalAlpha=.55;x.fillText('덴우 서고',W-110,H-120);
+  return c.toDataURL('image/png');
+}
+
+/* ===== 내 정보 ===== */
+function acctSheet(){
+  openSheet(`<h4>내 정보</h4>
+  <div><div class="lab">닉네임</div><div style="display:flex;gap:8px"><input class="f" id="nick" value="${esc(S.profile?.nickname||'')}" maxlength="16"><button class="btn" type="button" id="nickSave">변경</button></div></div>
+  <p class="note">${esc(S.user.email)}${isAdmin()?' · 관리자':''}</p>
+  <button class="btn" type="button" id="logout">로그아웃</button>`);
+  $('#nickSave').onclick=async()=>{const n=$('#nick').value.trim();if(!n)return;
+    const {error}=await sb.from('profiles').update({nickname:n}).eq('id',S.user.id);
+    if(error){toast('바꾸지 못했어요');return}S.profile.nickname=n;closeSheet();home();toast('닉네임을 바꿨어요')};
+  $('#logout').onclick=async()=>{closeSheet();await sb.auth.signOut()};
+}
+
+/* ===== 업로드 (관리자) ===== */
+function decodeText(buf){
+  try{return new TextDecoder('utf-8',{fatal:true}).decode(buf).replace(/^﻿/,'')}
+  catch(e){return new TextDecoder('euc-kr').decode(buf)}   // 옛날 한글 txt 파일 대응
+}
+let pending=[];
+function uploadSheet(){
+  pending=[];
+  openSheet(`<h4>텍파 업로드</h4>
+  <p class="note">.txt 파일을 여러 개 한꺼번에 고를 수 있어요. 파일 이름이 제목으로 들어가고, 파일 이름이 <b>제목_작가.txt</b> 모양이면 작가도 자동으로 채워져요.</p>
+  <input class="f" type="file" id="uF" accept=".txt,text/plain" multiple>
+  <div><div class="lab">공통 작가 (비어 있는 칸에만 들어가요)</div><input class="f" id="uA" placeholder="예: 작가 이름"></div>
+  <div><div class="lab">공통 태그 (쉼표로 구분)</div><input class="f" id="uG" placeholder="예: 현대AU, 단편"></div>
+  <div id="uList" style="display:flex;flex-direction:column;gap:8px"></div>
+  <details><summary class="note" style="cursor:pointer">파일 대신 직접 붙여넣기</summary>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px"><input class="f" id="pT" placeholder="제목"><input class="f" id="pA" placeholder="작가"><textarea id="pX" rows="6" placeholder="본문"></textarea><button class="btn" type="button" id="pAdd">목록에 추가</button></div>
+  </details>
+  <button class="btn pri big" type="button" id="uGo" disabled>서고에 올리기</button>`);
+  const renderList=()=>{
+    $('#uList').innerHTML=pending.map((p,i)=>`<div class="up-row"><input class="f" data-ut="${i}" value="${esc(p.title)}" aria-label="제목"><input class="f" data-ua="${i}" value="${esc(p.author)}" placeholder="작가" aria-label="작가"><small>${p.body.length.toLocaleString()}자 <button class="link" type="button" data-urm="${i}">빼기</button></small></div>`).join('');
+    $('#uGo').disabled=!pending.length; $('#uGo').textContent=pending.length?`${pending.length}편 서고에 올리기`:'서고에 올리기';
+  };
+  $('#uList').oninput=e=>{const t=e.target;if(t.dataset.ut)pending[+t.dataset.ut].title=t.value;if(t.dataset.ua)pending[+t.dataset.ua].author=t.value};
+  $('#uList').onclick=e=>{const b=e.target.closest('[data-urm]');if(b){pending.splice(+b.dataset.urm,1);renderList()}};
+  $('#uF').onchange=async e=>{
+    for(const f of e.target.files){
+      const body=decodeText(await f.arrayBuffer()).trim(); if(!body) continue;
+      const base=f.name.replace(/\.txt$/i,''); const m=base.split(/\s*[_＿]\s*/);
+      pending.push({title:m[0]||base,author:m.length>1?m.slice(1).join(' '):'',body});
+    }
+    e.target.value=''; renderList();
+  };
+  $('#pAdd').onclick=()=>{const t=$('#pT').value.trim(),x=$('#pX').value.trim();if(!t||!x){toast('제목과 본문이 필요해요');return}
+    pending.push({title:t,author:$('#pA').value.trim(),body:x});$('#pT').value='';$('#pA').value='';$('#pX').value='';renderList()};
+  $('#uGo').onclick=async()=>{
+    const ca=$('#uA').value.trim(), tags=$('#uG').value.split(',').map(s=>s.trim()).filter(Boolean);
+    const rows=pending.map((p,i)=>({title:p.title.trim()||'제목 없음',author:p.author.trim()||ca||'작가 미상',tags,color:COLORS[(S.works.length+i)%COLORS.length],written_at:ymd(Date.now()),body:p.body}));
+    const btn=$('#uGo');btn.disabled=true;let done=0;
+    for(let i=0;i<rows.length;i+=5){
+      btn.textContent=`올리는 중… ${done}/${rows.length}`;
+      const {error}=await sb.from('works').insert(rows.slice(i,i+5));
+      if(error){toast('일부 실패: '+error.message);break}
+      done+=Math.min(5,rows.length-i);
+    }
+    await loadAll(); closeSheet(); S.tab='all'; home(); toast(`${done}편을 올렸어요`);
+  };
+}
+function editSheet(id){
+  const x=workById(id);
+  openSheet(`<h4>작품 수정</h4>
+  <div><div class="lab">제목</div><input class="f" id="eT" value="${esc(x.title)}"></div>
+  <div><div class="lab">작가</div><input class="f" id="eA" value="${esc(x.author)}"></div>
+  <div><div class="lab">태그 (쉼표로 구분)</div><input class="f" id="eG" value="${esc((x.tags||[]).join(', '))}"></div>
+  <div><div class="lab">날짜 표시</div><input class="f" id="eD" value="${esc(x.written_at||'')}" placeholder="예: 2024.08.14"></div>
+  <div><div class="lab">표지 색</div><div class="seg" id="eC">${COLORS.map(c=>`<button type="button" data-c="${c}" class="${x.color===c?'on':''}" aria-label="${c}"><span style="display:inline-block;width:16px;height:16px;border-radius:4px;background:${c};vertical-align:middle"></span></button>`).join('')}</div></div>
+  <button class="btn pri big" type="button" id="eSave">저장</button>
+  <div id="delBox"><button class="btn ghost danger" type="button" id="eDel">이 작품 삭제</button></div>`);
+  let color=x.color;
+  $('#eC').onclick=e=>{const b=e.target.closest('[data-c]');if(!b)return;color=b.dataset.c;[...$('#eC').children].forEach(c=>c.classList.toggle('on',c===b))};
+  $('#eSave').onclick=async()=>{
+    const upd={title:$('#eT').value.trim()||x.title,author:$('#eA').value.trim()||'작가 미상',tags:$('#eG').value.split(',').map(s=>s.trim()).filter(Boolean),written_at:$('#eD').value.trim()||null,color};
+    const {error}=await sb.from('works').update(upd).eq('id',id);
+    if(error){toast('저장하지 못했어요');return}Object.assign(x,upd);closeSheet();detail(id);toast('저장했어요')};
+  $('#eDel').onclick=()=>{$('#delBox').innerHTML=`<p class="note">삭제하면 이 작품의 리뷰·북마크·저장 문장도 모두 지워져요.</p><div class="row"><button class="btn" type="button" data-close-sheet>취소</button><button class="btn pri" type="button" id="eDel2" style="background:var(--danger);border-color:var(--danger)">정말 삭제</button></div>`;
+    $('#eDel2').onclick=async()=>{const {error}=await sb.from('works').delete().eq('id',id);if(error){toast('삭제하지 못했어요');return}
+      await loadAll();closeSheet();home();toast('삭제했어요')}};
+}
+
+/* ===== 클릭 처리 ===== */
+document.addEventListener('click',async e=>{
+  const t=e.target.closest('button'); if(!t) return; const d=t.dataset;
+  if(t.id==='goHome'){ if(S.user){S.tab='all';S.q='';home()} }
+  else if(t.id==='acctBtn') acctSheet();
+  else if(d.home!=null){S.tab='all';home()}
+  else if(d.tab){S.tab=d.tab;home()}
+  else if(d.upload!=null) uploadSheet();
+  else if(d.detail) detail(d.detail);
+  else if(d.open) openReader(d.open,d.p!=null?+d.p:null);
+  else if(d.author){S.q=d.author;S.qBy='author';S.tab='all';home()}
+  else if(d.edit) editSheet(d.edit);
+  else if(d.close!=null){closeReader();S.view==='detail'?detail(S.detailId):home()}
+  else if(d.viewer!=null) viewerSheet();
+  else if(d.closeSheet!=null) closeSheet();
+  else if(d.mkcard){const q=S.quotes.find(x=>x.id===d.mkcard);if(q)cardSheet(q.content,workById(q.work_id))}
+  else if(d.delq){await sb.from('quotes').delete().eq('id',d.delq);S.quotes=S.quotes.filter(x=>x.id!==d.delq);home()}
+  else if(d.delrev){await sb.from('reviews').delete().eq('id',d.delrev);await refreshStats();detail(S.detailId)}
+});
+$('#dim').onclick=closeSheet;
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&cur)saveProgress(cur.id,lastRatio)});
+
+/* ===== 시작 ===== */
+let booted=null;
+sb.auth.onAuthStateChange((ev,session)=>{
+  const uid=session?.user?.id||null;
+  if(uid===booted) return; booted=uid;
+  setTimeout(async()=>{
+    if(!session){S.user=null;closeReader();authView();return}
+    S.user=session.user; $('#app').innerHTML='<p class="loading">서고를 여는 중…</p>';
+    if(await loadAll()) home();
+  },0);
+});
+</script>
+</body>
+</html>
