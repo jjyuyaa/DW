@@ -41,7 +41,7 @@ header.top{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1p
 .btn.danger{color:var(--danger)}
 .btn.big{padding:12px;font-size:15px;width:100%}
 .tabs{display:flex;gap:4px;margin-block:16px 12px;overflow-x:auto}
-.tab{border:0;background:none;padding:8px 12px;border-radius:999px;color:var(--sub);font-weight:500;white-space:nowrap}
+.tab{flex:none;border:0;background:none;padding:8px 10px;border-radius:999px;color:var(--sub);font-weight:500;white-space:nowrap}
 .tab.on{background:var(--ink);color:var(--bg)}
 .search{display:flex;gap:8px;margin-block:16px 0}
 .search select{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:0 10px}
@@ -135,6 +135,17 @@ input.f{width:100%;border:1px solid var(--line);background:var(--surface);border
 .row .meta{margin-top:2px}
 .dot{flex:none;width:6px;height:34px;border-radius:3px}
 .hero .chip{border:0}
+/* 최근에 읽은 팬픽 */
+.rhead{display:flex;align-items:center;justify-content:space-between;margin-top:20px}
+.rstrip{display:flex;gap:12px;overflow-x:auto;padding:10px 0 4px;scrollbar-width:none}
+.rstrip::-webkit-scrollbar{display:none}
+.rmini{flex:none;width:96px;border:0;background:none;padding:0;text-align:left;display:flex;flex-direction:column;gap:5px}
+.rmini .cover{padding:9px 8px 8px 11px}
+.rmini .ct{font-size:12.5px;-webkit-line-clamp:4}
+.rmini .ca{font-size:10.5px}
+.rmini .bt{font-size:12px;font-weight:500}
+.rrow{display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--line)}
+.rrow>.btn{white-space:nowrap;flex:none}
 /* 글 안에서 찾기 */
 .findbar{display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid var(--rline);background:var(--rbg)}
 .findbar input{flex:1;min-width:0;border:1px solid var(--rline);background:transparent;color:var(--rink);border-radius:8px;padding:7px 10px;font-size:14px}
@@ -275,7 +286,8 @@ function home(){
   S.view='home'; closeReader();
   $('#acctBtn').hidden=false; $('#acctBtn').textContent=(S.profile?.nickname||'내 정보')+' 님';
   const w=S.works, list=filtered(), q=S.q.trim().toLowerCase();
-  const last=Object.entries(S.progress).filter(([id])=>workById(id)).sort((a,b)=>b[1].t-a[1].t)[0];
+  const recent=Object.entries(S.progress).filter(([id])=>workById(id)).sort((a,b)=>b[1].t-a[1].t);
+  const last=recent[0];
   const lw=last&&workById(last[0]);
   const tags=allTags();
   let body='';
@@ -287,6 +299,13 @@ function home(){
     body = !w.length ? `<p class="empty">아직 올라온 글이 없어요.${isAdmin()?'<br>＋ 업로드로 첫 글을 올려보세요.':''}</p>`
       : tools + (pending ? '' : list.length ? (S.layout==='grid'?`<div class="grid">${list.map(cardItem).join('')}</div>`:`<div class="list">${list.map(rowItem).join('')}</div>`)
         : `<p class="empty">${q?`“${esc(S.q)}” `:''}${S.tag?`#${esc(S.tag)} `:''}결과가 없어요.</p>`);
+  } else if(S.tab==='rc'){
+    body = recent.length ? `<div class="list">${recent.map(([id,pr])=>{const x=workById(id);const pc=Math.round(pr.r*100);
+      return `<div class="rrow"><button class="row" type="button" data-open="${id}" style="border:0"><i class="dot" style="background:${esc(x.color)}"></i>
+        <div style="min-width:0;flex:1"><h3>${esc(x.title)}</h3><div class="meta"><span>${esc(x.author)}</span><span>${ago(pr.t)}</span>${pc>=98?'<span class="chip">완독</span>':`<span>${pc}%</span>`}</div>
+        <div class="bar" style="margin-top:6px"><i style="width:${pc}%"></i></div></div></button>
+        <button class="btn ghost" type="button" data-delpr="${id}" aria-label="${esc(x.title)} 읽은 기록 지우기">지우기</button></div>`}).join('')}</div>`
+      : `<p class="empty">아직 읽은 글이 없어요.</p>`;
   } else if(S.tab==='bm'){
     body = S.bookmarks.length ? `<div class="list">${S.bookmarks.map(b=>{const x=workById(b.work_id);if(!x)return'';
       return `<button class="row" type="button" data-open="${x.id}" data-p="${b.para}"><div style="min-width:0"><h3>${esc(x.title)}</h3><div class="meta">${b.para+1}번째 문단 · ${esc(b.snippet)}…</div></div><span class="meta">이동 ›</span></button>`}).join('')}</div>`
@@ -299,6 +318,9 @@ function home(){
   const ph={title:'제목으로 찾기',author:'작가 이름으로 찾기',body:'본문 속 문장으로 찾기 (2글자 이상)'}[S.qBy];
   $('#app').innerHTML=`
    ${lw?`<button class="cont" type="button" data-open="${lw.id}"><div style="flex:1;min-width:0"><div class="s">이어보기</div><div class="t">${esc(lw.title)}</div><div class="bar"><i style="width:${Math.round(last[1].r*100)}%"></i></div></div><span class="s">${Math.round(last[1].r*100)}% ›</span></button>`:''}
+   ${S.tab==='all'&&recent.length>1?`<div class="rhead"><span class="eyebrow" style="margin:0">최근에 읽은 팬픽</span><button class="link" type="button" data-tab="rc">전체 보기 ›</button></div>
+   <div class="rstrip">${recent.slice(1,13).map(([id,pr])=>{const x=workById(id);const pc=Math.round(pr.r*100);
+     return `<button class="rmini" type="button" data-open="${id}"><div class="cover" style="background:${esc(x.color)}"><span class="ct">${esc(x.title)}</span><span class="ca">${pc>=98?'완독':pc+'%'}</span><i class="cp" style="width:${pc}%"></i></div><div class="bt">${esc(x.title)}</div></button>`}).join('')}</div>`:''}
    <div class="search">
      <select id="qBy" aria-label="검색 기준"><option value="title"${S.qBy==='title'?' selected':''}>제목</option><option value="author"${S.qBy==='author'?' selected':''}>작가</option><option value="body"${S.qBy==='body'?' selected':''}>본문</option></select>
      <input id="q" type="search" placeholder="${ph}" value="${esc(S.q)}">
@@ -307,6 +329,7 @@ function home(){
    <div class="tabs">
      <button class="tab${S.tab==='all'?' on':''}" data-tab="all" type="button">전체 ${w.length}</button>
      <button class="tab${S.tab==='bm'?' on':''}" data-tab="bm" type="button">북마크 ${S.bookmarks.length}</button>
+     <button class="tab${S.tab==='rc'?' on':''}" data-tab="rc" type="button">최근 ${recent.length}</button>
      <button class="tab${S.tab==='qt'?' on':''}" data-tab="qt" type="button">문장 ${S.quotes.length}</button>
      <span class="sp"></span>
      ${isAdmin()?'<button class="tab" data-upload type="button">＋ 업로드</button>':''}
@@ -319,6 +342,7 @@ function home(){
   $('#qBy').onchange=e=>{S.qBy=e.target.value;S.bodyHits=null;const k=S.q.trim().toLowerCase();if(S.qBy==='body'&&k.length>=2)bodySearch(k);home()};
   const so=$('#sort'); if(so) so.onchange=e=>{S.sort=e.target.value;lset('sort',S.sort);home()};
 }
+function ago(t){const m=Math.floor((Date.now()-t)/60000);if(m<1)return'방금';if(m<60)return m+'분 전';const h=Math.floor(m/60);if(h<24)return h+'시간 전';const d=Math.floor(h/24);if(d<30)return d+'일 전';return ymd(t)}
 function starTxt(id){const st=S.stats[id];return `<span class="stars">★ ${st?Number(st.avg_stars).toFixed(1):'–'}</span><span>리뷰 ${st?st.review_count:0}</span>`}
 function cardItem(x){
   const pr=S.progress[x.id];
@@ -640,6 +664,7 @@ document.addEventListener('click',async e=>{
   else if(d.viewer!=null) viewerSheet();
   else if(d.closeSheet!=null) closeSheet();
   else if(d.mkcard){const q=S.quotes.find(x=>x.id===d.mkcard);if(q)cardSheet(q.content,workById(q.work_id))}
+  else if(d.delpr){await sb.from('progress').delete().eq('work_id',d.delpr).eq('user_id',S.user.id);delete S.progress[d.delpr];home();toast('읽은 기록을 지웠어요')}
   else if(d.delq){await sb.from('quotes').delete().eq('id',d.delq);S.quotes=S.quotes.filter(x=>x.id!==d.delq);home()}
   else if(d.delrev){await sb.from('reviews').delete().eq('id',d.delrev);await refreshStats();detail(S.detailId)}
 });
