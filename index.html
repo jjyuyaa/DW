@@ -132,6 +132,7 @@ input.f{width:100%;border:1px solid var(--line);background:var(--surface);border
 /* ===== Supabase 연결 정보 (공개 키라 여기 있어도 괜찮아요) ===== */
 const SUPABASE_URL = 'https://iiwwmerpqkgyreenuujp.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_P1nX5X5QhhLmCeh_MCnoTQ_gi5p2WEr';
+if(!window.supabase){document.getElementById('app').innerHTML='<p class="loading">연결 도구를 불러오지 못했어요. 새로고침해 주세요.</p>';throw new Error('supabase-js not loaded')}
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const $ = s => document.querySelector(s);
@@ -513,7 +514,7 @@ $('#dim').onclick=closeSheet;
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&cur)saveProgress(cur.id,lastRatio)});
 
 /* ===== 시작 ===== */
-let booted=null;
+let booted;   // 처음엔 '아직 모름' 상태
 sb.auth.onAuthStateChange((ev,session)=>{
   const uid=session?.user?.id||null;
   if(uid===booted) return; booted=uid;
